@@ -1,5 +1,6 @@
 mod api;
 mod jobs;
+mod logs;
 
 #[tokio::main]
 async fn main() {

@@ -1,6 +1,8 @@
 /*! Jobs module for async orchestrator
  * Defines job structures
  */
+use crate::logs;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Immutable metadata (id, type, payload)
@@ -57,23 +59,14 @@ impl JobSubmissionResponse {
     }
 }
 
-/*
-#[derive(Serialize, Debug, Clone)]
+// Job: represents a submitted job in-process
 pub struct Job {
     id: String,
-    #[serde(flatten)]
-    job_type: JobType,
+    job_type: String,
     state: State,
+    created_at: DateTime<Utc>,
+    started_at: DateTime<Utc>,
+    finished_at: DateTime<Utc>,
+    result: String,
+    log: logs::LogBuffer,
 }
-
-impl Job {
-    pub fn new(job_type: JobType) -> Self {
-        Self {
-            id: "job_999".to_string(), // TODO: Generate a real ID (e.g., with `uuid`)
-            state: State::QUEUED,
-            job_type: job_type,
-        }
-    }
-}
-
-*/
