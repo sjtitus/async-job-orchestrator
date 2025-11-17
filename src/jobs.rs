@@ -1,9 +1,10 @@
 /*! Jobs module for async orchestrator
  * Defines job structures
  */
-use crate::logs;
+use crate::logs::LogBuffer;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use ulid::Ulid;
 
 /// Immutable metadata (id, type, payload)
 /// Mutable runtime fields (state, result, log, created_at, started_at, finished_at)
@@ -59,14 +60,30 @@ impl JobSubmissionResponse {
     }
 }
 
-// Job: represents a submitted job in-process
+// Job: represents a submitted job
 pub struct Job {
-    id: String,
+    id: Ulid,
     job_type: String,
     state: State,
     created_at: DateTime<Utc>,
-    started_at: DateTime<Utc>,
-    finished_at: DateTime<Utc>,
+    started_at: Option<DateTime<Utc>>,
+    finished_at: Option<DateTime<Utc>>,
     result: String,
-    log: logs::LogBuffer,
+    log: LogBuffer,
+}
+
+impl Job {
+    pub fn new(job_type: &str) -> Self {
+        let now = Utc::now();
+        Self {
+            id: Ulid::new(),
+            job_type: job_type.to_string(),
+            state: State::QUEUED,
+            created_at: now,
+            started_at: None,
+            finished_at: None,
+            result: String::new(),
+            log: LogBuffer::new(),
+        }
+    }
 }
