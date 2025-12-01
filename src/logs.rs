@@ -29,6 +29,7 @@ impl std::fmt::Display for LogLevel {
     }
 }
 
+#[derive(Clone)]
 pub struct LogBuffer {
     data: Box<[u8; BLOCK_SIZE]>,
     len: usize,
@@ -71,6 +72,10 @@ impl LogBuffer {
 
     pub fn log(&mut self, level: LogLevel, msg: &str) {
         let _ = write!(self, "[{}] {}\n", level, msg);
+    }
+
+    pub fn logf(&mut self, level: LogLevel, args: fmt::Arguments<'_>) {
+        let _ = self.write_fmt(format_args!("[{}] {}\n", level, args));
     }
 
     fn write_bytes(&mut self, bytes: &[u8]) {
