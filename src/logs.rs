@@ -36,6 +36,34 @@ pub struct LogBuffer {
     full: bool,
 }
 
+impl fmt::Display for LogBuffer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let used = &self.data[..self.len];
+
+        match std::str::from_utf8(used) {
+            Ok(text) => write!(f, "{text}"),
+            Err(_) => write!(f, "<non-utf8 log data>"),
+        }
+    }
+}
+
+impl fmt::Debug for LogBuffer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let used = &self.data[..self.len];
+
+        let text = match std::str::from_utf8(used) {
+            Ok(s) => s,
+            Err(_) => "<non-utf8 log data>",
+        };
+
+        f.debug_struct("LogBuffer")
+            .field("len", &self.len)
+            .field("full", &self.full)
+            .field("data", &text)
+            .finish()
+    }
+}
+
 impl fmt::Write for LogBuffer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write_all(s.as_bytes()).map_err(|_| fmt::Error)

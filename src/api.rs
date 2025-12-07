@@ -1,9 +1,12 @@
 /*! API module for async job orchestrator */
+use axum::{
+    Json, Router, extract::State as AxumState, http::StatusCode, routing::get, routing::post,
+};
 use std::sync::Arc;
 
+use crate::api_error::ApiError;
 use crate::jobs::JobPool;
 use crate::jobs::JobSubmission;
-use axum::{Json, Router, extract::State as AxumState, routing::get, routing::post};
 
 /**
 Creates the main application router and wires up all the handlers.
@@ -21,9 +24,13 @@ pub fn create_router(pool: Arc<JobPool>) -> Router {
 /**
 Submit a new job for immediate execution
 */
-async fn post_jobs(AxumState(pool): AxumState<Arc<JobPool>>, Json(req): Json<JobSubmission>) {
+async fn post_jobs(
+    AxumState(pool): AxumState<Arc<JobPool>>,
+    Json(req): Json<JobSubmission>,
+) -> Result<StatusCode, ApiError> {
     println!("[api] Job submitted: {:?}", req);
-    pool.submit(req).await;
+    pool.submit(req).await?;
+    Ok(StatusCode::ACCEPTED)
 }
 
 /**
