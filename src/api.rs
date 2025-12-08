@@ -5,8 +5,7 @@ use axum::{
 use std::sync::Arc;
 
 use crate::api_error::ApiError;
-use crate::jobs::JobPool;
-use crate::jobs::JobSubmission;
+use crate::jobs::{Job, JobPool, JobSubmission};
 
 /**
 Creates the main application router and wires up all the handlers.
@@ -34,11 +33,13 @@ async fn post_jobs(
 }
 
 /**
-Get the status/result of a submitted job
+Get the active jobs
 */
-async fn get_jobs() -> &'static str {
-    println!("GET jobs");
-    return "get /jobs";
+async fn get_jobs(
+    AxumState(pool): AxumState<Arc<JobPool>>,
+) -> Result<(StatusCode, Json<Vec<Job>>), ApiError> {
+    let jobs = pool.get_jobs().await?;
+    Ok((StatusCode::OK, Json(jobs)))
 }
 
 /**

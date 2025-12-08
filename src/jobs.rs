@@ -7,6 +7,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 use tokio::sync::{
     Mutex,
     mpsc::{self},
@@ -67,7 +69,7 @@ pub enum JobSubmission {
 /**
  * Job
  */
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Job {
     id: Ulid,
     submission: JobSubmission,
@@ -76,6 +78,7 @@ pub struct Job {
     started_at: Option<DateTime<Utc>>,
     finished_at: Option<DateTime<Utc>>,
     result: String,
+    #[serde(skip)]
     log: LogBuffer,
 }
 
@@ -214,6 +217,7 @@ impl JobPoolState {
         println!("[JobPoolState]: ===========================");
         println!("[JobPoolState]: RUNNING JOB\n{:#?}", job_submission);
         println!("[JobPoolState]: ===========================");
+        thread::sleep(Duration::from_secs(10));
 
         {
             let mut job = job_arc.lock().unwrap();
@@ -232,7 +236,7 @@ impl JobPoolState {
     ) {
         // Create the job
         // if we have room, queue it; otherwise fail
-        let mut newjob = Job::new(job_submission);
+        let newjob = Job::new(job_submission);
         println!("[JobPoolState]: job {}: created", newjob.id);
         match self.find_slot() {
             None => {
@@ -350,5 +354,33 @@ impl JobPool {
             .send(job)
             .await
             .map_err(|_| ApiError::JobQueueClosed)
+    }
+
+    /**
+     * get_jobs: get active jobs
+     */
+    pub async fn get_jobs(&self) -> Result<Vec<Job>, ApiError> {
+        let p = self.pool.lock().await;
+        let mut out = Vec::new();
+        for opt in &p.jobs {
+            match opt {
+                Some(JobCell::Occupied(job_arc)) => {
+                    let job = job_arc
+                        .lock()
+                        .map_err(|_| ApiError::InternalError("failed to lock job".to_string()))?;
+                    println!("[JobPool]: [get_jobs]: job {}", job.id);
+                    out.push(job.clone());
+                }
+                Some(JobCell::Empty) => {
+                    println!("[JobPool]: [get_jobs]: job EMPTY");
+                }
+                None => {
+                    println!("[JobPool]: [get_jobs]: job NONE");
+                }
+                _ => {}
+            }
+        }
+        drop(p);
+        Ok(out)
     }
 }
