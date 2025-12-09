@@ -181,20 +181,27 @@ impl JobPoolState {
         debug_assert!(index < self.jobs.len());
         debug_assert!(matches!(self.jobs[index], Some(JobCell::Empty)));
 
+        // queue job
         job.state = State::QUEUED;
         job.log.logf(
             LogLevel::INFO,
             format_args!("queued at {}", chrono::Utc::now()),
         );
 
-        let cell = JobCell::Occupied(Arc::new(std::sync::Mutex::new(job)));
-        self.jobs[index] = Some(cell);
-        // TAKE the job out immediately
-        let cell = self.jobs[index].take().expect("job just inserted");
+        // package up the job for shared cross thread mutable access
+        // the jobs array gets a clone
+        let job_arc = Arc::new(std::sync::Mutex::new(job));
+        self.jobs[index] = Some(JobCell::Occupied(job_arc.clone()));
 
+        // execution thread gets clones
         let completion_tx = completion_tx.clone();
+        let job_arc_for_thread = job_arc.clone();
         tokio::task::spawn_blocking(move || {
-            JobPoolState::run_job_blocking(cell, index, completion_tx);
+            JobPoolState::run_job_blocking(
+                JobCell::Occupied(job_arc_for_thread),
+                index,
+                completion_tx,
+            );
         });
     }
 
