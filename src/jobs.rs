@@ -215,6 +215,7 @@ impl JobPoolState {
         {
             let mut job = job_arc.lock().unwrap();
             job.state = State::RUNNING;
+            job.started_at = Some(Utc::now());
             job.log.logf(LogLevel::INFO, format_args!("job started"));
             job_submission = job.submission.clone();
         }
@@ -229,6 +230,8 @@ impl JobPoolState {
         {
             let mut job = job_arc.lock().unwrap();
             job.state = State::SUCCEEDED;
+            job.result = "success".to_string();
+            job.finished_at = Some(Utc::now());
             job.log.logf(LogLevel::INFO, format_args!("job finished"));
         }
 

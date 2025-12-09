@@ -5,7 +5,7 @@ use axum::{
 use std::sync::Arc;
 
 use crate::api_error::ApiError;
-use crate::jobs::{Job, JobPool, JobSubmission};
+use crate::jobs::{JobPool, Job, JobSubmission};
 
 /**
 Creates the main application router and wires up all the handlers.
