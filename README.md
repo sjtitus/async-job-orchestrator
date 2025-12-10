@@ -3,7 +3,7 @@
 A TOY asynchronous job orchestration framework in Rust, developed as a project for me to learn Rust! 
 
 - It is currently WIP but has been extremely educational to develop
-- Human-coded, nothing authored by AI 
+- Human-coded, nothing authored by AI (except the PRD I had it generate for me based on what I wanted the project to be, not sure I've stayed true to it, lol)
 
 ## What is It?
 
