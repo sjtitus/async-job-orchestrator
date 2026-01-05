@@ -1,4 +1,4 @@
-# Phase 1 PRD — Async Job Orchestrator (Core Immediate Execution)
+# Async Job Orchestrator (Core Immediate Execution)
 
 **Version 0.1**  
 **Scope:** Single-tenant • Immediate execution • In-memory state  
